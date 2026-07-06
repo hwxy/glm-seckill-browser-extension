@@ -1,0 +1,4 @@
+ddddocr>=1.5.0
+flask>=3.0
+Pillow>=10.0
+opencv-python>=4.5,<5

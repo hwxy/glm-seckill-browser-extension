@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { width: 500px; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; font-size: 14px; background: #f8f9fa; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+    .section-title::before { content: ''; width: 4px; height: 16px; background: #1a73e8; border-radius: 2px; }
+    .status { font-size: 12px; color: #666; margin-top: 8px; padding: 8px 12px; background: #f0f7ff; border-radius: 4px; }
+    .status.ok { color: #1a73e8; }
+    button { padding: 6px 16px; border-radius: 6px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    button:hover { background: #f0f0f0; border-color: #999; }
+    button:active { background: #e0e0e0; }
+    .btn-del { color: #d93025; border-color: #fce8e6; background: #fce8e6; font-size: 12px; padding: 4px 10px; }
+    .btn-del:hover { background: #f5c6cb; border-color: #d93025; }
+    .empty { text-align: center; color: #999; padding: 20px 0; font-size: 13px; }
+    .var-row { border: 1px solid #e8e8e8; border-radius: 6px; padding: 12px; margin-bottom: 10px; background: #fafafa; }
+    .var-row input { padding: 6px 10px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 13px; }
+    .var-row textarea { width: 100%; padding: 8px; font-family: 'SF Mono', Consolas, monospace; font-size: 12px; resize: vertical; box-sizing: border-box; border: 1px solid #d0d0d0; border-radius: 4px; }
+
+    /* Config UI Styles */
+    .config-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+    .config-row:last-child { border-bottom: none; }
+    .config-label { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .config-label .title { font-weight: 500; color: #333; }
+    .config-label .desc { font-size: 12px; color: #666; }
+    .config-value { display: flex; align-items: center; gap: 8px; }
+    .config-value input[type="number"], .config-value input[type="text"], .config-value select {
+      width: 60px; padding: 6px 8px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 13px; text-align: center;
+    }
+    .config-value input[type="text"] { width: 120px; text-align: left; }
+    .config-value select { width: auto; min-width: 80px; }
+    .time-inputs { display: flex; align-items: center; gap: 4px; }
+    .time-inputs input { width: 50px !important; }
+    .time-inputs span { font-size: 12px; color: #999; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.3s; border-radius: 24px; }
+    .toggle-slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+    .toggle-switch input:checked + .toggle-slider { background-color: #1a73e8; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    /* Radio Group */
+    .radio-group { display: flex; gap: 16px; }
+    .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .radio-label input[type="radio"] { margin: 0; }
+
+    /* Platform Section */
+    .platform-section { margin-top: 12px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e8e8e8; }
+    .platform-title { font-size: 13px; font-weight: 500; color: #444; margin-bottom: 10px; }
+    .platform-select { width: 100% !important; padding: 8px !important; margin-bottom: 12px; }
+    .platform-config { display: none; }
+    .platform-config.active { display: block; }
+    .hidden { display: none !important; }
+
+    /* Save Button */
+    .save-btn { width: 100%; padding: 10px; background: #1a73e8; color: #fff; border: none; font-weight: 500; margin-top: 12px; }
+    .save-btn:hover { background: #1557b0; color: #fff; border-color: transparent; }
+    .save-btn:active { background: #0d47a1; }
+  </style>
+</head>
+<body>
+  <div class="section" style="background: #fff3cd; border-color: #ffc107;">
+    <div class="status" style="margin: 0; background: transparent; color: #856404;">⚠️ 配置修改后请刷新当前页面，使配置生效</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">⏰ 运行配置</div>
+    <div id="config-ui"></div>
+    <button id="save-config" class="save-btn">保存配置</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🔧 自定义重定向规则</div>
+    <div style="font-size: 12px; color: #666; margin-bottom: 12px;">
+      原接口的 query 参数会自动带到重定向后的 URL<br>
+      <span style="color: #1a73e8;">提示：路径末尾加 * 可匹配带参数的请求（如：https://api.com/path*）</span>
+    </div>
+    <div id="custom-rules"></div>
+    <div id="add-rule-form" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="text" id="new-rule-from" placeholder="匹配规则 (支持 * 通配符)" style="flex: 1; padding: 6px 10px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 13px;">
+        <input type="text" id="new-rule-to" placeholder="重定向到" style="flex: 1; padding: 6px 10px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 13px;">
+      </div>
+      <button id="add-rule-btn" style="width: 100%; padding: 8px; background: #34a853; color: #fff; border: none; font-weight: 500;">+ 添加规则</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📝 变量注入</div>
+    <div id="variables"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
