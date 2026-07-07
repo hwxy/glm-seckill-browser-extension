@@ -35,6 +35,23 @@ from PIL import Image, ImageDraw, ImageFont
 import ddddocr
 
 app = Flask(__name__)
+
+@app.before_request
+def handle_cors_preflight():
+    if request.method == 'OPTIONS':
+        resp = jsonify({'ok': True})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        return resp
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s')
 log = logging.getLogger('ddddocr-server')
 
