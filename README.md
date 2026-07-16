@@ -50,4 +50,7 @@ https://www.chaojiying.com/
 ### 火山引擎配置
 ![](./readme-img/9-1.png "标题")
 
+1）停留在当前页面，等待插件点击支付
+![](./readme-img/9-2.png "标题")
+
 
